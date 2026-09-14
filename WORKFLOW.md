@@ -39,7 +39,7 @@ graph TD
 
     Pipeline -->|Synchronized Records| GUI
     Pipeline -->|Completed Cycle Data| Youngs
-    Youngs -->|E1, E2, E3 (kPa)| GUI
+    Youngs -->|"E1, E2, E3 (kPa)"| GUI
     Pipeline -->|Batch Records| Logger
 ```
 
@@ -62,19 +62,19 @@ sequenceDiagram
     activate DAQ
     Note over DAQ: Continuous Background Loop:<br/>Reads ai0, applies Tare offset,<br/>calculates Force in Newtons.
 
-    GUI->>Motor: motor.connect() & set_speed(@0SI)
+    GUI->>Motor: motor.connect() and set_speed(@0SI)
     GUI->>DAQ: daq.tare() (Averages baseline voltage)
 
-    Note over GUI,Seq: User clicks "START TEST (啟動)"
+    Note over GUI,Seq: User clicks START TEST
     GUI->>Seq: run_experiment_async()
     activate Seq
 
     loop For each Cycle (1 to N)
         Note over Seq,Motor: Phase 1: Indentation (Loading, ~3.0s)
-        Seq->>Motor: move_relative(@0U{steps})
+        Seq->>Motor: move_relative(@0U steps)
         loop While Moving
-            Seq->>DAQ: read_sample() -> (V, N)
-            Seq->>Motor: query_position() -> (steps, mm)
+            Seq->>DAQ: read_sample() -> returns (V, N)
+            Seq->>Motor: query_position() -> returns (steps, mm)
             Seq->>Seq: Append timestamped record
             GUI->>GUI: GUI update loop draws live F-d curve
         end
@@ -115,19 +115,19 @@ stateDiagram-v2
     [*] --> Idle: Application Start
 
     Idle --> Configured: Set Depth, Speed, Cycles
-    Configured --> Tared: Press "Tare Sensor" (Zero N)
-    Tared --> Running: Press "START TEST"
+    Configured --> Tared: Press Tare Sensor (Zero N)
+    Tared --> Running: Press START TEST
 
     state Running {
-        [*] --> Loading: Send @0U{steps}
+        [*] --> Loading: Send @0U steps
         Loading --> Dwell: Target depth reached (w = 1.5 mm, ~3.0s)
         Dwell --> Unloading: Dwell timer expired (0.5s hold)
         Unloading --> Rest: Motor returned to Home (@0X0, ~1.8s)
-        Rest --> Loading: Cycle < Repeat Cycles
-        Rest --> Finished: Cycle == Repeat Cycles
+        Rest --> Loading: Cycle less than Repeat Cycles
+        Rest --> Finished: Cycle equals Repeat Cycles
     }
 
-    Running --> Stopped: User clicks "STOP / ABORT"
+    Running --> Stopped: User clicks STOP or ABORT
     Stopped --> Idle: Safe return to Home
     Finished --> Idle: Young's Modulus Calculated & Displayed
 ```
@@ -140,17 +140,17 @@ This protocol guides biomedical engineers and clinicians through performing an i
 
 ```mermaid
 flowchart TD
-    Step1["1. Pre-Therapy Subject Setup<br/>• Subject seated upright with neck in neutral position<br/>• Locate Upper Trapezius anatomical landmarks (Points A, B, C, or D)"]
+    Step1["1. Pre-Therapy Subject Setup<br/>- Subject seated upright with neck in neutral position<br/>- Locate Upper Trapezius anatomical landmarks (Points A, B, C, or D)"]
     
-    Step2["2. Ultrasound Baseline Thickness<br/>• Apply ultrasound gel to indenter contact probe<br/>• Position probe perpendicular (90°) to skin surface<br/>• Record baseline muscle thickness h (mm) via B-mode USG"]
+    Step2["2. Ultrasound Baseline Thickness<br/>- Apply ultrasound gel to indenter contact probe<br/>- Position probe perpendicular (90 degrees) to skin surface<br/>- Record baseline muscle thickness h (mm) via B-mode USG"]
 
-    Step3["3. Hardware Check & Tare Calibration<br/>• Launch Python GUI: python indenter_gui.py<br/>• Verify COM port and DAQ channel<br/>• Click 'Tare Sensor (Zero N)' while probe is in air / feather-touch"]
+    Step3["3. Hardware Check & Tare Calibration<br/>- Launch Python GUI: python indenter_gui.py<br/>- Verify COM port and DAQ channel<br/>- Click 'Tare Sensor (Zero N)' while probe is in air / feather-touch"]
 
-    Step4["4. Protocol Configuration<br/>• Target Displacement: 1.0 - 2.0 mm (Standard: 1.5 mm)<br/>• Number of Cycles: 5 consecutive cycles<br/>• Loading Duration: 3.0 s | Dwell: 0.5 s | Unloading: 1.8 s"]
+    Step4["4. Protocol Configuration<br/>- Target Displacement: 1.0 - 2.0 mm (Standard: 1.5 mm)<br/>- Number of Cycles: 5 consecutive cycles<br/>- Loading Duration: 3.0 s | Dwell: 0.5 s | Unloading: 1.8 s"]
 
-    Step5["5. Measurement Execution<br/>• Hold probe firmly at 90° against the muscle site<br/>• Click '▶ START TEST (啟動)'<br/>• Observe live F-d hysteresis loop and F-t curve"]
+    Step5["5. Measurement Execution<br/>- Hold probe firmly at 90 degrees against the muscle site<br/>- Click 'START TEST (Run)'<br/>- Observe live F-d hysteresis loop and F-t curve"]
 
-    Step6["6. Results Review & Export<br/>• Review calculated E1, E2, E3, and E_mean (kPa)<br/>• Click '💾 Export Data' to save tab-delimited file (.txt)<br/>• Clean probe and prepare next measurement location"]
+    Step6["6. Results Review & Export<br/>- Review calculated E1, E2, E3, and E_mean (kPa)<br/>- Click 'Export Data' to save tab-delimited file (.txt)<br/>- Clean probe and prepare next measurement location"]
 
     Step1 --> Step2 --> Step3 --> Step4 --> Step5 --> Step6
 ```
@@ -181,7 +181,7 @@ flowchart LR
     end
 
     subgraph Hayes Geometry Correction
-        Correction["Geometry Factor:<br/>G = (1 - ν²) / (2 · a · κ)<br/>where a=4.5mm, ν=0.45, κ=f(a/h)"]
+        Correction["Geometry Factor:<br/>G = (1 - nu^2) / (2 * a * kappa)<br/>where a=4.5mm, nu=0.45, kappa=f(a/h)"]
     end
 
     subgraph Output Moduli
@@ -214,9 +214,9 @@ To transition seamlessly between offline software development and physical lab t
 flowchart TD
     Start([Launch indenter_gui.py]) --> CheckEnv{Physical DAQ &<br/>COM Port Connected?}
     
-    CheckEnv -- No --> SimMode["Simulation Mode Automatically Engaged<br/>• Generates realistic synthetic viscoelastic muscle curves<br/>• Smooth motion interpolation across 3.0s loading<br/>• Full GUI & Export functionality active"]
+    CheckEnv -- No --> SimMode["Simulation Mode Automatically Engaged<br/>- Generates realistic synthetic viscoelastic muscle curves<br/>- Smooth motion interpolation across 3.0s loading<br/>- Full GUI & Export functionality active"]
     
-    CheckEnv -- Yes --> RealMode["Real Hardware Mode<br/>• Uncheck 'Simulation Mode' in GUI<br/>• Select active COM Port (e.g. COM4)<br/>• Select DAQ Channel (e.g. Dev1/ai0)<br/>• Click 'Tare Sensor'"]
+    CheckEnv -- Yes --> RealMode["Real Hardware Mode<br/>- Uncheck 'Simulation Mode' in GUI<br/>- Select active COM Port (e.g. COM4)<br/>- Select DAQ Channel (e.g. Dev1/ai0)<br/>- Click 'Tare Sensor'"]
     
     SimMode --> TestRun[Execute Test & Review Results]
     RealMode --> TestRun
