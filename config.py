@@ -46,3 +46,9 @@ class IndenterConfig:
     poisson_ratio: float = 0.45         # nu = 0.45 for biological soft tissue
     indenter_radius_mm: float = 4.5     # a = 4.5 mm (ultrasound transducer indenter tip)
     tissue_thickness_mm: float = 12.0   # h = typical Upper Trapezius muscle thickness (mm)
+
+    # --- Elasticity Calculation Mode ---
+    # Options: "matlab_polyfit" (legacy s3_e_20170718_polyfit_index_kUS.m) or "piecewise_linear"
+    calculation_method: str = "matlab_polyfit"
+    matlab_strain_ratios: tuple[float, float, float] = (0.05, 0.10, 0.15)
+

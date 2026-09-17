@@ -157,51 +157,33 @@ flowchart TD
 
 ---
 
-## 5. Young's Modulus Extraction & Analysis Pipeline
+## 5. Young's Modulus Extraction & Analysis Pipeline (Dual Mode)
 
-The Young's Modulus calculation translates raw discrete data points into clinically meaningful tissue stiffness values:
+The Young's Modulus calculation translates raw discrete data points into clinically meaningful tissue stiffness values, supporting two interchangeable calculation modes:
 
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph Data Ingestion
         Raw["Cyclic Time-Series Data<br/>(Displacement w, Force P)"]
-    end
-
-    subgraph Filtration & Segmentation
         Filter["Filter Loading Phase Only<br/>(Increasing w from 0 to w_max)"]
-        Seg1["Strain Segment 1 (5% - 35% w_max)"]
-        Seg2["Strain Segment 2 (35% - 70% w_max)"]
-        Seg3["Strain Segment 3 (70% - 100% w_max)"]
     end
 
-    subgraph Linear Regression
-        Slope1["Slope 1: (dP/dw)_1"]
-        Slope2["Slope 2: (dP/dw)_2"]
-        Slope3["Slope 3: (dP/dw)_3"]
+    subgraph Mode A: MATLAB Legacy Compatibility (s3_e_20170718)
+        Polyfit["2nd-Degree Polynomial Curve Fit<br/>P(w) = c2*w^2 + c1*w + c0"]
+        EvalA["Evaluate Secant Slopes at Muscle Thickness:<br/>ed1 = 0.05h, ed2 = 0.10h, ed3 = 0.15h"]
+        KappaA["Hayes kappa Lookup Table (index_k_serial)<br/>kappa = polyval(p1, a/h)"]
+        ResA["E1, E2, E3 (kPa) & E23 Chord Modulus"]
     end
 
-    subgraph Hayes Geometry Correction
-        Correction["Geometry Factor:<br/>G = (1 - nu^2) / (2 * a * kappa)<br/>where a=4.5mm, nu=0.45, kappa=f(a/h)"]
-    end
-
-    subgraph Output Moduli
-        E1["E1 (kPa): Initial elasticity"]
-        E2["E2 (kPa): Muscle belly stiffness"]
-        E3["E3 (kPa): Deep structural stiffness"]
+    subgraph Mode B: Piecewise Linear Regression
+        SegB["Depth Segmentation Ranges:<br/>5-35%, 35-70%, 70-100% of w_max"]
+        SlopeB["Linear Regressions: (dP/dw)_1, (dP/dw)_2, (dP/dw)_3"]
+        ResB["E1, E2, E3 & E_mean (kPa)"]
     end
 
     Raw --> Filter
-    Filter --> Seg1 --> Slope1
-    Filter --> Seg2 --> Slope2
-    Filter --> Seg3 --> Slope3
-
-    Correction --> E1
-    Correction --> E2
-    Correction --> E3
-
-    Slope1 --> E1
-    Slope2 --> E2
-    Slope3 --> E3
+    Filter --> Polyfit --> EvalA --> KappaA --> ResA
+    Filter --> SegB --> SlopeB --> ResB
 ```
 
 ---

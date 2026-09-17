@@ -109,7 +109,9 @@ class IndenterPipeline:
                     displacement_mm=cycle_df["disp_mm"].to_numpy(),
                     indenter_radius_mm=self.config.indenter_radius_mm,
                     tissue_thickness_mm=self.config.tissue_thickness_mm,
-                    poisson_ratio=self.config.poisson_ratio
+                    poisson_ratio=self.config.poisson_ratio,
+                    method=self.config.calculation_method,
+                    ratios=self.config.matlab_strain_ratios
                 )
 
             if self.on_cycle_complete:
@@ -132,7 +134,9 @@ class IndenterPipeline:
                 displacement_mm=df["disp_mm"].to_numpy(),
                 indenter_radius_mm=self.config.indenter_radius_mm,
                 tissue_thickness_mm=self.config.tissue_thickness_mm,
-                poisson_ratio=self.config.poisson_ratio
+                poisson_ratio=self.config.poisson_ratio,
+                method=self.config.calculation_method,
+                ratios=self.config.matlab_strain_ratios
             )
 
         print("[Indenter] Experiment completed successfully.")

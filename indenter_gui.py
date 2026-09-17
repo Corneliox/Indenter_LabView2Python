@@ -122,6 +122,16 @@ class IndenterApp(tk.Tk):
         self.entry_speed.insert(0, str(self.config.top_speed))
         self.entry_speed.grid(row=4, column=1, sticky=tk.E, pady=2)
 
+        ttk.Label(param_card, text="Modulus Mode:").grid(row=5, column=0, sticky=tk.W, pady=2)
+        self.combo_mode = ttk.Combobox(
+            param_card,
+            values=["MATLAB Polyfit (Hayes)", "Piecewise Linear"],
+            state="readonly",
+            width=16
+        )
+        self.combo_mode.set("MATLAB Polyfit (Hayes)")
+        self.combo_mode.grid(row=5, column=1, sticky=tk.E, pady=2)
+
         # --- Card 3: Live Readouts & Modulus Results ---
         res_card = ttk.LabelFrame(left_frame, text="Live Readings & Modulus", padding=8)
         res_card.pack(fill=tk.X, pady=5)
@@ -146,8 +156,10 @@ class IndenterApp(tk.Tk):
         self.lbl_e2.grid(row=0, column=1, sticky=tk.W, padx=4)
         self.lbl_e3 = ttk.Label(mod_frame, text="E3: --- kPa", font=("Segoe UI", 10, "bold"), foreground="#0066cc")
         self.lbl_e3.grid(row=1, column=0, sticky=tk.W, padx=4, pady=2)
+        self.lbl_e23 = ttk.Label(mod_frame, text="E23: --- kPa", font=("Segoe UI", 10, "bold"), foreground="#28a745")
+        self.lbl_e23.grid(row=1, column=1, sticky=tk.W, padx=4, pady=2)
         self.lbl_emean = ttk.Label(mod_frame, text="E_mean: --- kPa", font=("Segoe UI", 10, "bold"), foreground="#cc0000")
-        self.lbl_emean.grid(row=1, column=1, sticky=tk.W, padx=4, pady=2)
+        self.lbl_emean.grid(row=2, column=0, columnspan=2, sticky=tk.W, padx=4, pady=2)
 
         # --- Card 4: Action Buttons ---
         act_card = ttk.Frame(left_frame)
@@ -228,6 +240,11 @@ class IndenterApp(tk.Tk):
             self.config.dwell_time_s = float(self.entry_dwell.get())
             self.config.retract_time_s = float(self.entry_retract.get())
             self.config.top_speed = int(self.entry_speed.get())
+            mode_str = self.combo_mode.get()
+            if "MATLAB" in mode_str:
+                self.config.calculation_method = "matlab_polyfit"
+            else:
+                self.config.calculation_method = "piecewise_linear"
         except ValueError as e:
             messagebox.showerror("Invalid Input", f"Please enter valid numeric parameters: {e}")
 
@@ -270,12 +287,14 @@ class IndenterApp(tk.Tk):
         self.btn_start.config(state=tk.NORMAL)
         self.btn_stop.config(state=tk.DISABLED)
         self._update_modulus_labels(overall_results)
+        mode_name = overall_results.get('mode', self.config.calculation_method)
         messagebox.showinfo(
             "Indentation Test Finished",
-            f"Measurement complete!\n"
+            f"Measurement complete!\nMode: {mode_name}\n\n"
             f"E1: {overall_results.get('E1_kPa', 0.0)} kPa\n"
             f"E2: {overall_results.get('E2_kPa', 0.0)} kPa\n"
             f"E3: {overall_results.get('E3_kPa', 0.0)} kPa\n"
+            f"E23: {overall_results.get('E23_kPa', 0.0)} kPa\n"
             f"Mean Modulus: {overall_results.get('E_mean_kPa', 0.0)} kPa"
         )
 
@@ -283,6 +302,7 @@ class IndenterApp(tk.Tk):
         self.lbl_e1.config(text=f"E1: {results.get('E1_kPa', '---')} kPa")
         self.lbl_e2.config(text=f"E2: {results.get('E2_kPa', '---')} kPa")
         self.lbl_e3.config(text=f"E3: {results.get('E3_kPa', '---')} kPa")
+        self.lbl_e23.config(text=f"E23: {results.get('E23_kPa', '---')} kPa")
         self.lbl_emean.config(text=f"E_mean: {results.get('E_mean_kPa', '---')} kPa")
 
     def _on_export(self):
